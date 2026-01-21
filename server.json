@@ -92,6 +92,20 @@
           "isRequired": false,
           "format": "number",
           "isSecret": false
+        },
+        {
+          "name": "CB_MCP_ENABLE_MIDDLEWARE",
+          "description": "Enable HTTP middleware for streamable HTTP transport.",
+          "isRequired": false,
+          "format": "boolean",
+          "isSecret": false
+        },
+        {
+          "name": "CB_MCP_HTTP_MIDDLEWARE",
+          "description": "Comma-separated HTTP middleware types for streamable HTTP transport (`http_logging`, `header_logging`, `timing`).",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
         }
       ],
       "packageArguments": [
@@ -182,6 +196,22 @@
           "isRequired": false,
           "format": "number",
           "isSecret": false
+        },
+        {
+          "type": "named",
+          "name": "--enable-middleware",
+          "description": "Enable HTTP middleware for streamable HTTP transport.",
+          "isRequired": false,
+          "format": "boolean",
+          "isSecret": false
+        },
+        {
+          "type": "named",
+          "name": "--http-middleware",
+          "description": "Comma-separated HTTP middleware types for streamable HTTP transport (`http_logging`, `header_logging`, `timing`).",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
         }
       ]
     },
@@ -267,6 +297,20 @@
           "description": "Port to run the MCP server on (default: 8000). Used only for HTTP and SSE transport modes.",
           "isRequired": false,
           "format": "number",
+          "isSecret": false
+        },
+        {
+          "name": "CB_MCP_ENABLE_MIDDLEWARE",
+          "description": "Enable HTTP middleware for streamable HTTP transport.",
+          "isRequired": false,
+          "format": "boolean",
+          "isSecret": false
+        },
+        {
+          "name": "CB_MCP_HTTP_MIDDLEWARE",
+          "description": "Comma-separated HTTP middleware types for streamable HTTP transport (`http_logging`, `header_logging`, `timing`).",
+          "isRequired": false,
+          "format": "string",
           "isSecret": false
         }
       ]
