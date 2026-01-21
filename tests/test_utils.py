@@ -17,9 +17,12 @@ import pytest
 
 from utils.config import get_settings
 from utils.connection import connect_to_bucket, connect_to_couchbase_cluster
+from couchbase.options import TLSVerifyMode
+
 from utils.constants import (
     ALLOWED_TRANSPORTS,
     DEFAULT_READ_ONLY_MODE,
+    DEFAULT_TLS_VERIFY,
     DEFAULT_TRANSPORT,
     MCP_SERVER_NAME,
     NETWORK_TRANSPORTS,
@@ -256,20 +259,25 @@ class TestIndexUtilsFunctions:
 
     def test_determine_ssl_non_tls(self) -> None:
         """Non-TLS connection should disable SSL verification."""
-        result = _determine_ssl_verification("couchbase://localhost", None)
+        result = _determine_ssl_verification("couchbase://localhost", None, True)
         assert result is False
 
     def test_determine_ssl_tls_no_cert(self) -> None:
         """TLS connection without cert uses system CA bundle."""
-        result = _determine_ssl_verification("couchbases://localhost", None)
+        result = _determine_ssl_verification("couchbases://localhost", None, True)
         assert result is True
 
     def test_determine_ssl_tls_with_cert(self) -> None:
         """TLS connection with cert uses provided cert."""
         result = _determine_ssl_verification(
-            "couchbases://localhost", "/path/to/ca.pem"
+            "couchbases://localhost", "/path/to/ca.pem", True
         )
         assert result == "/path/to/ca.pem"
+
+    def test_determine_ssl_tls_verify_disabled(self) -> None:
+        """TLS verification disabled should return False."""
+        result = _determine_ssl_verification("couchbases://localhost", None, False)
+        assert result is False
 
 
 class TestConstants:
@@ -297,6 +305,10 @@ class TestConstants:
     def test_default_read_only_mode(self) -> None:
         """Verify default read-only mode is True for safety."""
         assert DEFAULT_READ_ONLY_MODE is True
+
+    def test_default_tls_verify(self) -> None:
+        """Verify default TLS verification is enabled."""
+        assert DEFAULT_TLS_VERIFY is True
 
 
 class TestConfigModule:
@@ -337,12 +349,13 @@ class TestConfigModule:
             "ca_cert_path": "/path/to/ca.pem",
             "client_cert_path": "/path/to/client.pem",
             "client_key_path": "/path/to/client.key",
+            "tls_verify": True,
         }
 
         with patch("utils.config.click.get_current_context", return_value=mock_ctx):
             settings = get_settings()
 
-        assert len(settings) == 6
+        assert len(settings) == 7
         assert settings["ca_cert_path"] == "/path/to/ca.pem"
 
 
@@ -370,6 +383,9 @@ class TestConnectionModule:
             )
 
             mock_auth.assert_called_once_with("admin", "password", cert_path=None)
+            mock_options.assert_called_once_with(
+                mock_auth.return_value, tls_verify=TLSVerifyMode.PEER
+            )
             mock_cluster_class.assert_called_once()
             mock_cluster.wait_until_ready.assert_called_once()
             assert result == mock_cluster
@@ -400,6 +416,9 @@ class TestConnectionModule:
                 cert_path="/path/to/client.pem",
                 key_path="/path/to/client.key",
                 trust_store_path="/path/to/ca.pem",
+            )
+            mock_options.assert_called_once_with(
+                mock_cert_auth.return_value, tls_verify=TLSVerifyMode.PEER
             )
             assert result == mock_cluster
 
@@ -524,6 +543,7 @@ class TestContextModule:
             "ca_cert_path": None,
             "client_cert_path": None,
             "client_key_path": None,
+            "tls_verify": True,
         }
 
         with (

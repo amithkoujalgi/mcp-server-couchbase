@@ -19,6 +19,7 @@ from utils import (
     DEFAULT_LOG_LEVEL,
     DEFAULT_PORT,
     DEFAULT_READ_ONLY_MODE,
+    DEFAULT_TLS_VERIFY,
     DEFAULT_TRANSPORT,
     MCP_SERVER_NAME,
     NETWORK_TRANSPORTS,
@@ -96,6 +97,12 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     help="Path to the client certificate key file used for mTLS authentication.",
 )
 @click.option(
+    "--tls-verify/--no-tls-verify",
+    envvar="CB_TLS_VERIFY",
+    default=DEFAULT_TLS_VERIFY,
+    help="Enable or disable TLS certificate verification when using couchbases://.",
+)
+@click.option(
     "--read-only-query-mode",
     envvar=[
         "CB_MCP_READ_ONLY_QUERY_MODE",
@@ -137,6 +144,7 @@ def main(
     ca_cert_path,
     client_cert_path,
     client_key_path,
+    tls_verify,
     read_only_query_mode,
     transport,
     host,
@@ -151,6 +159,7 @@ def main(
         "ca_cert_path": ca_cert_path,
         "client_cert_path": client_cert_path,
         "client_key_path": client_key_path,
+        "tls_verify": tls_verify,
         "read_only_query_mode": read_only_query_mode,
         "transport": transport,
         "host": host,

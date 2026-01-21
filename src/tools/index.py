@@ -151,6 +151,7 @@ def list_indexes(
             collection_name=collection_name,
             index_name=index_name,
             ca_cert_path=settings.get("ca_cert_path"),
+            tls_verify=settings.get("tls_verify", True),
         )
 
         # Process and format the results

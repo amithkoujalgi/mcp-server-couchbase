@@ -45,6 +45,13 @@
           "isSecret": false
         },
         {
+          "name": "CB_TLS_VERIFY",
+          "description": "Enable or disable TLS certificate verification for couchbases:// connections.",
+          "isRequired": false,
+          "format": "boolean",
+          "isSecret": false
+        },
+        {
           "name": "CB_CLIENT_CERT_PATH",
           "description": "Couchbase client certificate path. Required for mTLS authentication.",
           "isRequired": false,
@@ -118,6 +125,14 @@
           "description": "Couchbase CA certificate path. Required for TLS authentication in non Capella clusters.",
           "isRequired": false,
           "format": "string",
+          "isSecret": false
+        },
+        {
+          "type": "named",
+          "name": "--tls-verify",
+          "description": "Enable TLS certificate verification for couchbases:// connections (use --no-tls-verify to disable).",
+          "isRequired": false,
+          "format": "boolean",
           "isSecret": false
         },
         {
@@ -203,6 +218,13 @@
           "description": "Couchbase CA certificate path. Required for TLS authentication in non Capella clusters.",
           "isRequired": false,
           "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "CB_TLS_VERIFY",
+          "description": "Enable or disable TLS certificate verification for couchbases:// connections.",
+          "isRequired": false,
+          "format": "boolean",
           "isSecret": false
         },
         {

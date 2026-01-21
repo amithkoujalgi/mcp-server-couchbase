@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from couchbase.auth import CertificateAuthenticator, PasswordAuthenticator
 from couchbase.cluster import Bucket, Cluster
-from couchbase.options import ClusterOptions
+from couchbase.options import ClusterOptions, TLSVerifyMode
 
 from .constants import MCP_SERVER_NAME
 
@@ -18,6 +18,7 @@ def connect_to_couchbase_cluster(
     ca_cert_path: str | None = None,
     client_cert_path: str | None = None,
     client_key_path: str | None = None,
+    tls_verify: bool = True,
 ) -> Cluster:
     """Connect to Couchbase cluster and return the cluster object if successful.
     The connection can be established using the client certificate and key or the username and password. Optionally, the CA root certificate path can also be provided.
@@ -45,10 +46,14 @@ def connect_to_couchbase_cluster(
             )
         else:
             logger.info("Connecting to Couchbase cluster with password...")
-            auth = PasswordAuthenticator(username, password, cert_path=ca_cert_path)
-        options = ClusterOptions(auth)
+            if ca_cert_path:
+                auth = PasswordAuthenticator(username, password, cert_path=ca_cert_path)
+            else:
+                auth = PasswordAuthenticator(username, password)
+        verify_mode = TLSVerifyMode.PEER if tls_verify else TLSVerifyMode.NONE
+        options = ClusterOptions(auth, tls_verify=verify_mode)
         options.apply_profile("wan_development")
-
+        
         cluster = Cluster(connection_string, options)  # type: ignore
         cluster.wait_until_ready(timedelta(seconds=5))
 

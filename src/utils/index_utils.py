@@ -151,17 +151,22 @@ def _extract_hosts_from_connection_string(connection_string: str) -> list[str]:
 
 
 def _determine_ssl_verification(
-    connection_string: str, ca_cert_path: str | None
+    connection_string: str, ca_cert_path: str | None, tls_verify: bool
 ) -> bool | str:
     """Determine SSL verification setting based on connection string and cert path.
 
     Args:
         connection_string: Couchbase connection string
         ca_cert_path: Optional path to CA certificate
+        tls_verify: Whether to verify TLS certificates
 
     Returns:
         SSL verification setting (bool or path to cert file)
     """
+    if not tls_verify:
+        logger.warning("TLS verification disabled for REST API requests")
+        return False
+
     is_tls_enabled = connection_string.lower().startswith("couchbases://")
     is_capella_connection = connection_string.lower().endswith(".cloud.couchbase.com")
 
@@ -230,6 +235,7 @@ def fetch_indexes_from_rest_api(
     collection_name: str | None = None,
     index_name: str | None = None,
     ca_cert_path: str | None = None,
+    tls_verify: bool = True,
     timeout: int = 30,
 ) -> list[dict[str, Any]]:
     """Fetch indexes from Couchbase Index Service REST API.
@@ -247,6 +253,7 @@ def fetch_indexes_from_rest_api(
         index_name: Optional index name to filter indexes
         ca_cert_path: Optional path to CA certificate for SSL verification.
                      If not provided and using Capella, will use Capella root CA.
+        tls_verify: Whether to verify TLS certificates (default: True)
         timeout: Request timeout in seconds (default: 30)
 
     Returns:
@@ -267,7 +274,9 @@ def fetch_indexes_from_rest_api(
 
     # Build query parameters and determine SSL verification
     params = _build_query_params(bucket_name, scope_name, collection_name, index_name)
-    verify_ssl = _determine_ssl_verification(connection_string, ca_cert_path)
+    verify_ssl = _determine_ssl_verification(
+        connection_string, ca_cert_path, tls_verify
+    )
 
     # Try each host one by one until we get a successful response
     last_error = None

@@ -32,6 +32,7 @@ def _set_cluster_in_lifespan_context(ctx: Context) -> None:
         ca_cert_path = settings.get("ca_cert_path")
         client_cert_path = settings.get("client_cert_path")
         client_key_path = settings.get("client_key_path")
+        tls_verify = settings.get("tls_verify", True)
 
         cluster = connect_to_couchbase_cluster(
             connection_string,  # type: ignore
@@ -40,6 +41,7 @@ def _set_cluster_in_lifespan_context(ctx: Context) -> None:
             ca_cert_path,
             client_cert_path,
             client_key_path,
+            tls_verify,
         )
         ctx.request_context.lifespan_context.cluster = cluster
     except Exception as e:

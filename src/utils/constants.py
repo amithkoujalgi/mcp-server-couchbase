@@ -6,6 +6,7 @@ DEFAULT_READ_ONLY_MODE = True
 DEFAULT_TRANSPORT = "stdio"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
+DEFAULT_TLS_VERIFY = True
 
 # Allowed Transport Types
 ALLOWED_TRANSPORTS = ["stdio", "http", "sse"]
