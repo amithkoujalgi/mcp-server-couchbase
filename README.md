@@ -149,9 +149,12 @@ The server can be configured using environment variables or command line argumen
 | `CB_MCP_TRANSPORT` | `--transport` | Transport mode: `stdio`, `http`, `sse` | `stdio` |
 | `CB_MCP_HOST` | `--host` | Host for HTTP/SSE transport modes | `127.0.0.1` |
 | `CB_MCP_PORT` | `--port` | Port for HTTP/SSE transport modes | `8000` |
+| `CB_MCP_ENABLE_MIDDLEWARE` | `--enable-middleware` | Enable HTTP middleware for streamable HTTP transport | `false` |
+| `CB_MCP_HTTP_MIDDLEWARE` | `--http-middleware` | Comma-separated HTTP middleware types for streamable HTTP transport (`http_logging`, `header_logging`) | |
 
 > Note: For authentication, you need either the Username and Password or the Client Certificate and key paths. Optionally, you can specify the CA root certificate path that will be used to validate the server certificates.
 > If both the Client Certificate & key path and the username and password are specified, the client certificates will be used for authentication.
+> Middleware is only applied in streamable HTTP transport mode. To enable it, set `CB_MCP_ENABLE_MIDDLEWARE=true` and provide one or more middleware types in `CB_MCP_HTTP_MIDDLEWARE` (comma-separated).
 
 You can also check the version of the server using:
 

@@ -86,3 +86,7 @@ The detailed explanation for the environment variables can be found on the [Gith
 | `CB_MCP_TRANSPORT`            | Transport mode (stdio/http/sse)                                                                           | `stdio`                                                        |
 | `CB_MCP_HOST`                 | Server host (HTTP/SSE modes)                                                                              | `127.0.0.1`                                                    |
 | `CB_MCP_PORT`                 | Server port (HTTP/SSE modes)                                                                              | `8000`                                                         |
+| `CB_MCP_ENABLE_MIDDLEWARE`    | Enable HTTP middleware for streamable HTTP transport                                                      | `false`                                                        |
+| `CB_MCP_HTTP_MIDDLEWARE`      | Comma-separated HTTP middleware types for streamable HTTP transport (`http_logging`, `header_logging`)    |                                                                |
+
+> Note: HTTP middleware is only applied in streamable HTTP transport mode. Set `CB_MCP_ENABLE_MIDDLEWARE=true` and provide one or more middleware types in `CB_MCP_HTTP_MIDDLEWARE`.

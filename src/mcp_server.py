@@ -8,9 +8,13 @@ from contextlib import asynccontextmanager
 
 import click
 from mcp.server.fastmcp import FastMCP
+import uvicorn
 
 # Import tools
 from tools import ALL_TOOLS
+
+# Import middleware
+from utils import AVAILABLE_HTTP_MIDDLEWARE_TYPES
 
 # Import utilities
 from utils import (
@@ -36,6 +40,16 @@ logging.basicConfig(
 
 logger = logging.getLogger(MCP_SERVER_NAME)
 
+def split_http_middleware_types(ctx, param, value):
+    if value is None:
+        return None
+    if isinstance(value, tuple):
+        # If multiple values are already passed via CLI, flatten them
+        flat = []
+        for v in value:
+            flat.extend(v.split(","))
+        return tuple(flat)
+    return tuple(value.split(","))
 
 @asynccontextmanager
 async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
@@ -134,6 +148,25 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     default=DEFAULT_PORT,
     help="Port to run the server on (default: 8000)",
 )
+@click.option(
+    "--enable-middleware",
+    envvar="CB_MCP_ENABLE_MIDDLEWARE",
+    is_flag=True,
+    default=False,
+    help="Enable HTTP middleware.",
+)
+@click.option(
+    "--http-middleware",
+    envvar="CB_MCP_HTTP_MIDDLEWARE",
+    callback=split_http_middleware_types,
+    multiple=True,
+    default=None,
+    help=(
+        "HTTP middleware to enable (e.g., --http-middleware http_logging --http-middleware header_logging). "
+        "Env var can be comma-separated: CB_MCP_HTTP_MIDDLEWARE=http_logging,header_logging"
+    ),
+)
+
 @click.version_option(package_name="couchbase-mcp-server")
 @click.pass_context
 def main(
@@ -149,6 +182,8 @@ def main(
     transport,
     host,
     port,
+    enable_middleware,
+    http_middleware,
 ):
     """Couchbase MCP Server"""
     # Store configuration in context
@@ -164,6 +199,8 @@ def main(
         "transport": transport,
         "host": host,
         "port": port,
+        "enable_middleware": enable_middleware,
+        "http_middleware": http_middleware,
     }
 
     # Map user-friendly transport names to SDK transport names
@@ -184,10 +221,24 @@ def main(
     # Register all tools
     for tool in ALL_TOOLS:
         mcp.add_tool(tool)
+        
+    if transport == "http":
+        mcp_streamable_http_app = mcp.streamable_http_app
+        
+        if enable_middleware:
+            logger.info("HTTP middleware is enabled. Applying HTTP middleware to the server.")
+            SELECTED_HTTP_MIDDLEWARE_TYPES = http_middleware
+            logger.info(f"Selected HTTP middleware types: {SELECTED_HTTP_MIDDLEWARE_TYPES}")
 
-    # Run the server
-    mcp.run(transport=sdk_transport)  # type: ignore
-
+            for key in SELECTED_HTTP_MIDDLEWARE_TYPES:
+                http_middleware_cls = AVAILABLE_HTTP_MIDDLEWARE_TYPES[key]
+                mcp_streamable_http_app = http_middleware_cls(mcp_streamable_http_app)
+        else:
+            logger.info("HTTP middleware is disabled. No HTTP middleware will be applied.")
+        
+        uvicorn.run(mcp_streamable_http_app, host="0.0.0.0", port=8000, factory=False)
+    else:
+        mcp.run(transport=sdk_transport)
 
 if __name__ == "__main__":
     main()

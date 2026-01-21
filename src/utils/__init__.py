@@ -15,6 +15,17 @@ from .connection import (
     connect_to_couchbase_cluster,
 )
 
+# HTTP middleware utilities
+from .http_middleware import (
+    HTTPPathAndMethodLoggingMiddleware,
+    HeaderLoggingMiddleware,
+)
+
+AVAILABLE_HTTP_MIDDLEWARE_TYPES = {
+    "http_logging": HTTPPathAndMethodLoggingMiddleware,
+    "header_logging": HeaderLoggingMiddleware,
+}
+
 # Constants
 from .constants import (
     ALLOWED_TRANSPORTS,
