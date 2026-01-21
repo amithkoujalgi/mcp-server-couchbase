@@ -1,10 +1,13 @@
 from typing import Callable
-from starlette.types import Receive, Scope, Send
-
-from starlette.types import Receive, Scope, Send
+import time
 from typing import Callable, Union
+import logging
+from starlette.types import Receive, Scope, Send
+from utils.constants import MCP_SERVER_NAME
 
 ASGIApp = Callable[[Scope, Receive, Send], "Coroutine"]
+
+logger = logging.getLogger(MCP_SERVER_NAME)
 
 class BaseMiddleware:
     """
@@ -38,10 +41,10 @@ class BaseMiddleware:
             self._asgi_app = self._factory()
         await self._asgi_app(scope, receive, send)
         
-class HTTPPathAndMethodLoggingMiddleware(BaseMiddleware):
+class HTTPRequestLoggingMiddleware(BaseMiddleware):
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope["type"] == "http":
-            print(f"[HTTPPathAndMethodLoggingMiddleware] Path: {scope['path']} - Method: {scope['method']}")
+            logger.info(f"[HTTPRequestLoggingMiddleware] Request Received: {scope}")
         await super().__call__(scope, receive, send)
 
 
@@ -49,5 +52,18 @@ class HeaderLoggingMiddleware(BaseMiddleware):
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope["type"] == "http":
             headers = {k.decode(): v.decode() for k, v in scope.get("headers", [])}
-            print(f"[HeaderLoggingMiddleware] Headers: {headers}")
+            logger.info(f"[HeaderLoggingMiddleware] Headers: {headers}")
         await super().__call__(scope, receive, send)
+        
+class TimingMiddleware(BaseMiddleware):
+    """
+    Logs the time taken to process each HTTP request.
+    """
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await super().__call__(scope, receive, send)
+            return
+        start = time.time()
+        await super().__call__(scope, receive, send)
+        duration = (time.time() - start) * 1000
+        logger.info(f"[TimingMiddleware] Path: {scope.get('path')} handled in {duration:.2f} ms")

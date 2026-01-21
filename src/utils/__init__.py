@@ -17,13 +17,15 @@ from .connection import (
 
 # HTTP middleware utilities
 from .http_middleware import (
-    HTTPPathAndMethodLoggingMiddleware,
+    HTTPRequestLoggingMiddleware,
     HeaderLoggingMiddleware,
+    TimingMiddleware,
 )
 
 AVAILABLE_HTTP_MIDDLEWARE_TYPES = {
-    "http_logging": HTTPPathAndMethodLoggingMiddleware,
+    "http_logging": HTTPRequestLoggingMiddleware,
     "header_logging": HeaderLoggingMiddleware,
+    "timing": TimingMiddleware,
 }
 
 # Constants
